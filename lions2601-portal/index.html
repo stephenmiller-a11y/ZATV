@@ -836,13 +836,13 @@
     .cal-outer { max-width: 960px; margin: 0 auto; padding: 32px 32px 64px; display: flex; flex-direction: column; gap: 20px; }
     .cal-wrap { background: #fff; border-radius: 16px; border: 1px solid #e8e8e8; overflow: hidden; }
     /* Header */
-    .cal-header { display: flex; align-items: center; gap: 10px; padding: 16px 22px; border-bottom: 1px solid #f0f0f0; }
+    .cal-header { display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-bottom: 1px solid #f0f0f0; }
     .cal-month-label { font-size: 18px; font-weight: 700; min-width: 170px; text-align: center; }
-    .cal-view-select { padding: 5px 10px; border-radius: 6px; border: 1.5px solid #e0e0e0; background: #fff; color: #555; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .cal-view-select { padding: 8px 14px; border-radius: 8px; border: 1.5px solid #e0e0e0; background: #fff; color: #555; font-size: 12px; font-weight: 600; cursor: pointer; }
     .cal-view-select:focus { outline: none; border-color: #7b2d8b; }
     .cal-nav-btn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #e0e0e0; background: #fff; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: #555; line-height: 1; }
     .cal-nav-btn:hover { background: #f5f5f5; }
-    .cal-today-btn { padding: 5px 14px; border-radius: 20px; border: 1.5px solid #7b2d8b; background: #fff; color: #7b2d8b; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .cal-today-btn { padding: 8px 18px; border-radius: 20px; border: 1.5px solid #7b2d8b; background: #fff; color: #7b2d8b; font-size: 12px; font-weight: 700; cursor: pointer; }
     .cal-today-btn:hover { background: #7b2d8b; color: #fff; }
     .cal-legend { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; }
     .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #555; }
@@ -1067,9 +1067,9 @@
       <div class="section-title-sm">Approvals</div>
     </div>
     <div class="talent-state-tabs">
-      <button class="state-tab active" data-tstate="pending"      onclick="setTalentState('pending',this)">⏳ Pending <span class="state-count" id="count-pending">0</span></button>
-      <button class="state-tab"        data-tstate="not-approved" onclick="setTalentState('not-approved',this)">🚫 Not Approved <span class="state-count" id="count-not-approved">0</span></button>
-      <button class="state-tab"        data-tstate="approved"     onclick="setTalentState('approved',this)">✅ Approved <span class="state-count" id="count-approved">0</span></button>
+      <button type="button" class="state-tab active" data-tstate="pending"      onclick="setTalentState('pending',this)">⏳ Pending <span class="state-count" id="count-pending">0</span></button>
+      <button type="button" class="state-tab"        data-tstate="not-approved" onclick="setTalentState('not-approved',this)">🚫 Not Approved <span class="state-count" id="count-not-approved">0</span></button>
+      <button type="button" class="state-tab"        data-tstate="approved"     onclick="setTalentState('approved',this)">✅ Approved <span class="state-count" id="count-approved">0</span></button>
     </div>
 
     <div id="talent-cards"></div>
@@ -2544,9 +2544,9 @@ function renderConceptsTab(deliverables, offers) {
   '</div>';
 
   var stateTabsHtml = '<div class="state-tabs" id="concept-state-tabs">' +
-    '<button class="state-tab active" onclick="conceptSetState(\'pending\',this)">⏳ Pending <span class="state-count" id="cpt-tab-pending">' + nPending + '</span></button>' +
-    '<button class="state-tab" onclick="conceptSetState(\'revision\',this)">✏️ In Revision <span class="state-count" id="cpt-tab-revision">' + nRevision + '</span></button>' +
-    '<button class="state-tab" onclick="conceptSetState(\'approved\',this)">✅ Approved <span class="state-count" id="cpt-tab-approved">' + nApproved + '</span></button>' +
+    '<button type="button" class="state-tab active" onclick="conceptSetState(\'pending\',this)">⏳ Pending <span class="state-count" id="cpt-tab-pending">' + nPending + '</span></button>' +
+    '<button type="button" class="state-tab" onclick="conceptSetState(\'revision\',this)">✏️ In Revision <span class="state-count" id="cpt-tab-revision">' + nRevision + '</span></button>' +
+    '<button type="button" class="state-tab" onclick="conceptSetState(\'approved\',this)">✅ Approved <span class="state-count" id="cpt-tab-approved">' + nApproved + '</span></button>' +
   '</div>';
 
   var cardsHtml = concepts.map(function(d) {
@@ -2593,9 +2593,9 @@ function renderDraftsTab(deliverables, offers) {
   '</div>';
 
   var stateTabsHtml = '<div class="state-tabs" id="draft-state-tabs">' +
-    '<button class="state-tab active" onclick="draftSetState(\'pending\',this)">⏳ Pending <span class="state-count" id="dft-tab-pending">' + nPending + '</span></button>' +
-    '<button class="state-tab" onclick="draftSetState(\'revision\',this)">✏️ In Revision <span class="state-count" id="dft-tab-revision">' + nRevision + '</span></button>' +
-    '<button class="state-tab" onclick="draftSetState(\'approved\',this)">✅ Approved <span class="state-count" id="dft-tab-approved">' + nApproved + '</span></button>' +
+    '<button type="button" class="state-tab active" onclick="draftSetState(\'pending\',this)">⏳ Pending <span class="state-count" id="dft-tab-pending">' + nPending + '</span></button>' +
+    '<button type="button" class="state-tab" onclick="draftSetState(\'revision\',this)">✏️ In Revision <span class="state-count" id="dft-tab-revision">' + nRevision + '</span></button>' +
+    '<button type="button" class="state-tab" onclick="draftSetState(\'approved\',this)">✅ Approved <span class="state-count" id="dft-tab-approved">' + nApproved + '</span></button>' +
   '</div>';
 
   var cardsHtml = drafts.map(function(d) {
