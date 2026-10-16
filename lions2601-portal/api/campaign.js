@@ -57,6 +57,7 @@ const DELIVERABLE_FIELDS = [
   'fldUdrMJAhL1Zey7q', // Duration (number in seconds)
   'fldbxbzPhXG4LKjVV', // Saves
   'fld5in4laRsGr89HQ', // Sticker Taps (Instagram Stories only)
+  'fldGsqMCl8lQZnvRv', // Caption
   'fldrqHaeKmZqVPFfa', // Engagement Rate (percentage)
   'fldIdCgPgm0jduMfq', // Avg Engagement Rate
 ];
@@ -252,6 +253,7 @@ module.exports = async function handler(req, res) {
           shares:         f['fldqqQzTtUl6k5crI'] != null ? Math.max(0, f['fldqqQzTtUl6k5crI']) : null,
           saves:          f['fldbxbzPhXG4LKjVV']  != null ? Math.max(0, f['fldbxbzPhXG4LKjVV'])  : null,
           stickerTaps:    f['fld5in4laRsGr89HQ']  != null ? Math.max(0, f['fld5in4laRsGr89HQ'])  : null,
+          caption:        f['fldGsqMCl8lQZnvRv']  || null,
           engagementRate: f['fldrqHaeKmZqVPFfa']  != null ? Math.max(0, f['fldrqHaeKmZqVPFfa'])  : null,
           avgEngRate:     f['fldIdCgPgm0jduMfq']  != null ? Math.max(0, f['fldIdCgPgm0jduMfq'])  : null,
           hasThumbnail:   !!(f['flds3ZtOYpN6eTur5'] && f['flds3ZtOYpN6eTur5'].length > 0),
