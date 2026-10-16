@@ -461,8 +461,9 @@
     .roster-empty-title { font-size: 13px; font-weight: 700; color: #b5b5bb; }
     /* State tabs */
     .talent-state-tabs { display: flex; background: #ececef; border-radius: 12px; padding: 4px; gap: 3px; margin-bottom: 20px; }
-    .state-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: none; background: transparent; border-radius: 9px; font-size: 13px; font-weight: 700; color: #777; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .state-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: none; background: transparent; border-radius: 9px; font-size: 13px; font-weight: 700; color: #777; cursor: pointer; transition: all 0.15s; font-family: inherit; scroll-margin: 0; }
     .state-tab:hover { color: #333; }
+    .state-tab:focus { outline: none; }
     .state-tab.active { background: #fff; color: #7b2d8b; box-shadow: 0 1px 5px rgba(0,0,0,0.12); }
     .state-count { font-size: 11px; font-weight: 800; min-width: 20px; height: 20px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; background: #ddd; color: #666; }
     .state-tab.active .state-count { background: #7b2d8b; color: #fff; }
@@ -643,8 +644,9 @@
     .sum-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .sum-value { font-size: 21px; font-weight: 800; }
     .state-tabs { display: flex; background: #ececef; border-radius: 12px; padding: 4px; gap: 3px; margin-bottom: 20px; }
-    .state-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: none; background: transparent; border-radius: 9px; font-size: 13px; font-weight: 700; color: #777; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .state-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: none; background: transparent; border-radius: 9px; font-size: 13px; font-weight: 700; color: #777; cursor: pointer; transition: all 0.15s; font-family: inherit; scroll-margin: 0; }
     .state-tab:hover { color: #333; }
+    .state-tab:focus { outline: none; }
     .state-tab.active { background: #fff; color: #7b2d8b; box-shadow: 0 1px 5px rgba(0,0,0,0.12); }
     .state-count { font-size: 11px; font-weight: 800; min-width: 20px; height: 20px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; background: #ddd; color: #666; }
     .state-tab.active .state-count { background: #7b2d8b; color: #fff; }
@@ -1931,7 +1933,6 @@ function refreshTalentCounts() {
 function setTalentState(state, btn) {
   if (btn) btn.blur();
   var savedScroll = window.scrollY;
-  document.body.style.overflow = 'hidden';
   _talentState = state;
   document.querySelectorAll('.state-tab').forEach(function(t) { t.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -1944,8 +1945,7 @@ function setTalentState(state, btn) {
   var empty = document.getElementById('talent-empty');
   if (empty) empty.style.display = visible ? 'none' : 'block';
   requestAnimationFrame(function() {
-    window.scrollTo(0, savedScroll);
-    document.body.style.overflow = '';
+    requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
   });
 }
 
@@ -2669,7 +2669,6 @@ function updateDraftCounts() {
 function conceptSetState(state, btn) {
   if (btn) btn.blur();
   var savedScroll = window.scrollY;
-  document.body.style.overflow = 'hidden';
   _conceptState = state;
   var tabs = document.querySelectorAll('#concept-state-tabs .state-tab');
   tabs.forEach(function(b) { b.classList.toggle('active', b === btn); });
@@ -2682,8 +2681,7 @@ function conceptSetState(state, btn) {
   var empty = document.getElementById('concept-empty');
   if (empty) empty.style.display = visible === 0 ? '' : 'none';
   requestAnimationFrame(function() {
-    window.scrollTo(0, savedScroll);
-    document.body.style.overflow = '';
+    requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
   });
 }
 
@@ -2758,7 +2756,6 @@ function conceptSendFeedback(delivId, safeid, ver) {
 function draftSetState(state, btn) {
   if (btn) btn.blur();
   var savedScroll = window.scrollY;
-  document.body.style.overflow = 'hidden';
   _draftState = state;
   var tabs = document.querySelectorAll('#draft-state-tabs .state-tab');
   tabs.forEach(function(b) { b.classList.toggle('active', b === btn); });
@@ -2771,8 +2768,7 @@ function draftSetState(state, btn) {
   var empty = document.getElementById('draft-empty');
   if (empty) empty.style.display = visible === 0 ? '' : 'none';
   requestAnimationFrame(function() {
-    window.scrollTo(0, savedScroll);
-    document.body.style.overflow = '';
+    requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
   });
 }
 
