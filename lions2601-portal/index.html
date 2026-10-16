@@ -1933,6 +1933,9 @@ function refreshTalentCounts() {
 function setTalentState(state, btn) {
   if (btn) btn.blur();
   var savedScroll = window.scrollY;
+  var container = document.getElementById('talent-cards');
+  // Lock height before hiding cards so the page can't shrink below current scroll
+  container.style.minHeight = container.offsetHeight + 'px';
   _talentState = state;
   document.querySelectorAll('.state-tab').forEach(function(t) { t.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -1945,7 +1948,9 @@ function setTalentState(state, btn) {
   var empty = document.getElementById('talent-empty');
   if (empty) empty.style.display = visible ? 'none' : 'block';
   requestAnimationFrame(function() {
-    requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
+    window.scrollTo(0, savedScroll);
+    // Release height lock only if new tab has enough content to fill the space
+    if (visible > 2) container.style.minHeight = '';
   });
 }
 
@@ -2669,6 +2674,8 @@ function updateDraftCounts() {
 function conceptSetState(state, btn) {
   if (btn) btn.blur();
   var savedScroll = window.scrollY;
+  var container = document.getElementById('concept-cards');
+  container.style.minHeight = container.offsetHeight + 'px';
   _conceptState = state;
   var tabs = document.querySelectorAll('#concept-state-tabs .state-tab');
   tabs.forEach(function(b) { b.classList.toggle('active', b === btn); });
@@ -2681,7 +2688,8 @@ function conceptSetState(state, btn) {
   var empty = document.getElementById('concept-empty');
   if (empty) empty.style.display = visible === 0 ? '' : 'none';
   requestAnimationFrame(function() {
-    requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
+    window.scrollTo(0, savedScroll);
+    if (visible > 2) container.style.minHeight = '';
   });
 }
 
@@ -2756,6 +2764,8 @@ function conceptSendFeedback(delivId, safeid, ver) {
 function draftSetState(state, btn) {
   if (btn) btn.blur();
   var savedScroll = window.scrollY;
+  var container = document.getElementById('draft-cards');
+  container.style.minHeight = container.offsetHeight + 'px';
   _draftState = state;
   var tabs = document.querySelectorAll('#draft-state-tabs .state-tab');
   tabs.forEach(function(b) { b.classList.toggle('active', b === btn); });
@@ -2768,7 +2778,8 @@ function draftSetState(state, btn) {
   var empty = document.getElementById('draft-empty');
   if (empty) empty.style.display = visible === 0 ? '' : 'none';
   requestAnimationFrame(function() {
-    requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
+    window.scrollTo(0, savedScroll);
+    if (visible > 2) container.style.minHeight = '';
   });
 }
 
