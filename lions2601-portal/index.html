@@ -1930,6 +1930,7 @@ function refreshTalentCounts() {
 
 function setTalentState(state, btn) {
   var savedScroll = window.scrollY;
+  if (btn) btn.blur();
   _talentState = state;
   document.querySelectorAll('.state-tab').forEach(function(t) { t.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -2663,6 +2664,7 @@ function updateDraftCounts() {
 
 function conceptSetState(state, btn) {
   var savedScroll = window.scrollY;
+  if (btn) btn.blur();
   _conceptState = state;
   var tabs = document.querySelectorAll('#concept-state-tabs .state-tab');
   tabs.forEach(function(b) { b.classList.toggle('active', b === btn); });
@@ -2747,6 +2749,7 @@ function conceptSendFeedback(delivId, safeid, ver) {
 
 function draftSetState(state, btn) {
   var savedScroll = window.scrollY;
+  if (btn) btn.blur();
   _draftState = state;
   var tabs = document.querySelectorAll('#draft-state-tabs .state-tab');
   tabs.forEach(function(b) { b.classList.toggle('active', b === btn); });
