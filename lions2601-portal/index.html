@@ -1941,7 +1941,7 @@ function setTalentState(state, btn) {
   });
   var empty = document.getElementById('talent-empty');
   if (empty) empty.style.display = visible ? 'none' : 'block';
-  window.scrollTo(0, savedScroll);
+  requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
 }
 
 function approvalClass(offer) {
@@ -2674,7 +2674,7 @@ function conceptSetState(state, btn) {
   });
   var empty = document.getElementById('concept-empty');
   if (empty) empty.style.display = visible === 0 ? '' : 'none';
-  window.scrollTo(0, savedScroll);
+  requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
 }
 
 function conceptOpenFeedback(safeid) {
@@ -2758,7 +2758,7 @@ function draftSetState(state, btn) {
   });
   var empty = document.getElementById('draft-empty');
   if (empty) empty.style.display = visible === 0 ? '' : 'none';
-  window.scrollTo(0, savedScroll);
+  requestAnimationFrame(function() { window.scrollTo(0, savedScroll); });
 }
 
 function draftOpenFeedback(safeid) {
