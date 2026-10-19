@@ -74,6 +74,7 @@ const OFFER_FIELDS = [
   'fld4PkLU2QwRoJ8Sk', // YouTube URL — multipleLookupValues
   'fldMnSn105js66oLh', // Snapchat URL — multipleLookupValues
   'fldFlu16WtdeFsWfX', // Headshot — multipleLookupValues of attachments
+  'fldJmmjtlntZs9duX', // Talent Notes
   'fldGwHtpe9pNZmCYI', // Biography — multipleLookupValues
   'fldWRvRqw9E1leW0g', // US Audience — multipleLookupValues
   'fldmqzhGoXj8iuuDa', // Offer amount
@@ -195,11 +196,12 @@ module.exports = async function handler(req, res) {
       atGetByIds(TABLES.offers,       offerIds,       OFFER_FIELDS,       token),
       atGetByIds(TABLES.timelines,    timelineIds,    [],                 token),
       brandId ? atGetByIds(BRAND_TABLE, [brandId], ['fldzffs5mAHRcIadt'], token) : Promise.resolve({ records: [] }),
-      atGetByIds(TABLES.campaigns, [campaignId], ['fldQkRs7pObXothE4'], token),
+      atGetByIds(TABLES.campaigns, [campaignId], ['fldQkRs7pObXothE4', 'fldwKJ9vMBTM9o4FD'], token),
     ]);
 
     const brandName     = brandData.records?.[0]?.fields?.['fldzffs5mAHRcIadt'] || null;
     const hideProgress  = campFieldsData.records?.[0]?.fields?.['fldQkRs7pObXothE4'] === true;
+    const showBios      = campFieldsData.records?.[0]?.fields?.['fldwKJ9vMBTM9o4FD'] === true;
 
     // 2b. Collect unique Talent IDs from offers and fetch follower counts
     const talentIds = [...new Set(
@@ -229,6 +231,7 @@ module.exports = async function handler(req, res) {
       status:          cf['Status']                    || null,
       campaignOverview: cf['Campaign Overview']         || null,
       hideProgress:    hideProgress,
+      showBios:        showBios,
       briefBackground: cf['Brief Background']?.trim()          || null,
       briefGuidelines: cf['Brief Creative Guidelines']?.trim() || null,
       briefCTA:        cf['Brief CTA']?.trim()                 || null,
@@ -313,6 +316,7 @@ module.exports = async function handler(req, res) {
         tiktokFollowers:     followers.tiktokFollowers     ?? null,
         youtubeFollowers:    followers.youtubeFollowers    ?? null,
         snapchatFollowers:   followers.snapchatFollowers   ?? null,
+        talentNotes:         f['fldJmmjtlntZs9duX']        || null,
       };
     });
 
