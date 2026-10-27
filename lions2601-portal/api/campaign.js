@@ -196,12 +196,13 @@ module.exports = async function handler(req, res) {
       atGetByIds(TABLES.offers,       offerIds,       OFFER_FIELDS,       token),
       atGetByIds(TABLES.timelines,    timelineIds,    [],                 token),
       brandId ? atGetByIds(BRAND_TABLE, [brandId], ['fldzffs5mAHRcIadt'], token) : Promise.resolve({ records: [] }),
-      atGetByIds(TABLES.campaigns, [campaignId], ['fldQkRs7pObXothE4', 'fldwKJ9vMBTM9o4FD'], token),
+      atGetByIds(TABLES.campaigns, [campaignId], ['fldQkRs7pObXothE4', 'fldwKJ9vMBTM9o4FD', 'fldaDRav0VmwBxI8A'], token),
     ]);
 
     const brandName     = brandData.records?.[0]?.fields?.['fldzffs5mAHRcIadt'] || null;
-    const hideProgress  = campFieldsData.records?.[0]?.fields?.['fldQkRs7pObXothE4'] === true;
-    const showBios      = campFieldsData.records?.[0]?.fields?.['fldwKJ9vMBTM9o4FD'] === true;
+    const hideProgress     = campFieldsData.records?.[0]?.fields?.['fldQkRs7pObXothE4'] === true;
+    const showBios         = campFieldsData.records?.[0]?.fields?.['fldwKJ9vMBTM9o4FD'] === true;
+    const hiddenPlatforms  = (campFieldsData.records?.[0]?.fields?.['fldaDRav0VmwBxI8A'] || []).map(s => s.toLowerCase());
 
     // 2b. Collect unique Talent IDs from offers and fetch follower counts
     const talentIds = [...new Set(
@@ -230,8 +231,9 @@ module.exports = async function handler(req, res) {
       endDate:         cf['End Date']                  || null,
       status:          cf['Status']                    || null,
       campaignOverview: cf['Campaign Overview']         || null,
-      hideProgress:    hideProgress,
-      showBios:        showBios,
+      hideProgress:     hideProgress,
+      showBios:         showBios,
+      hiddenPlatforms:  hiddenPlatforms,
       briefBackground: cf['Brief Background']?.trim()          || null,
       briefGuidelines: cf['Brief Creative Guidelines']?.trim() || null,
       briefCTA:        cf['Brief CTA']?.trim()                 || null,
