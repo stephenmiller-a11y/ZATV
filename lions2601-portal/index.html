@@ -1279,6 +1279,7 @@ var _deliverables  = []; // cached for updateStats()
 var _offers        = []; // cached for roster updates after approval actions
 var _showBios          = false; // campaign.showBios flag
 var _hiddenPlatforms   = [];   // campaign.hiddenPlatforms (lowercase array)
+var _tabs              = null; // campaign.tabs visibility map (null = all visible)
 var _headshotMap   = {}; // talent name → headshotUrl, built from offers
 var _campaignId    = new URLSearchParams(window.location.search).get('campaign') || '';
 var _reportingOnly = new URLSearchParams(window.location.search).get('view') === 'reporting'
@@ -1292,6 +1293,8 @@ function renderAll(data) {
   _offers       = offers;       // cache for roster updates
   _showBios         = !!(campaign && campaign.showBios);
   _hiddenPlatforms  = (campaign && campaign.hiddenPlatforms) || [];
+  _tabs             = (campaign && campaign.tabs) || null;
+  applyTabVisibility();
   // Build headshot lookup: talent name → headshotUrl
   _headshotMap = {};
   (offers || []).forEach(function(o) { if (o.name && o.headshotUrl) _headshotMap[o.name] = o.headshotUrl; });
@@ -4288,6 +4291,29 @@ function switchTab(name, el) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
+}
+
+function applyTabVisibility() {
+  if (!_tabs) return; // no data yet — leave everything as-is
+  // Map each tab name to its onclick token (used to find the tab button)
+  var TAB_NAMES = ['overview','creative','talent','timeline','calendar','concepts','approvals','reporting'];
+  var firstVisible = null;
+  TAB_NAMES.forEach(function(name) {
+    var show = !!_tabs[name];
+    // Find the tab button by its onclick attribute
+    var btn = document.querySelector('.tab[onclick*="switchTab(\'' + name + '\'"]');
+    var panel = document.getElementById('panel-' + name);
+    if (btn)   btn.style.display   = show ? '' : 'none';
+    if (panel) panel.style.display = show ? '' : 'none';
+    if (show && !firstVisible) firstVisible = name;
+  });
+  // If the currently active tab is now hidden, switch to the first visible one
+  var activeTab = document.querySelector('.tab.active');
+  var activeHidden = activeTab && activeTab.style.display === 'none';
+  if (activeHidden && firstVisible) {
+    var firstBtn = document.querySelector('.tab[onclick*="switchTab(\'' + firstVisible + '\'"]');
+    if (firstBtn) switchTab(firstVisible, firstBtn);
+  }
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
