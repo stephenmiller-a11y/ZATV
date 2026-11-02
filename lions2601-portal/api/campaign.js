@@ -225,13 +225,37 @@ module.exports = async function handler(req, res) {
       atGetByIds(TABLES.offers,       offerIds,       OFFER_FIELDS,       token),
       atGetByIdsNamed(TABLES.timelines, timelineIds, token),
       brandId ? atGetByIds(BRAND_TABLE, [brandId], ['fldzffs5mAHRcIadt'], token) : Promise.resolve({ records: [] }),
-      atGetByIds(TABLES.campaigns, [campaignId], ['fldQkRs7pObXothE4', 'fldwKJ9vMBTM9o4FD', 'fldaDRav0VmwBxI8A'], token),
+      atGetByIds(TABLES.campaigns, [campaignId], [
+        'fldQkRs7pObXothE4',  // hideProgress
+        'fldwKJ9vMBTM9o4FD',  // showBios
+        'fldaDRav0VmwBxI8A',  // hiddenPlatforms
+        'fld8xQL6sNqYouiIZ',  // Overview Tab
+        'fldVIAMIGjJ8dipTk',  // Creative Tab
+        'fldNHYtjmSaF3Ul2y',  // Talent Tab
+        'fldEBlECkHIhijJdA',  // Timeline Tab
+        'fld2h3oWw4f2rR4lD',  // Calendar Tab
+        'fldhBOR1RYrJatWud',  // Concepts Tab
+        'fldX5pM8us7oPCIQz',  // Drafts Tab
+        'fldAL0r2eqBPUq1Oi',  // Reporting Tab
+      ], token),
     ]);
 
     const brandName     = brandData.records?.[0]?.fields?.['fldzffs5mAHRcIadt'] || null;
-    const hideProgress     = campFieldsData.records?.[0]?.fields?.['fldQkRs7pObXothE4'] === true;
-    const showBios         = campFieldsData.records?.[0]?.fields?.['fldwKJ9vMBTM9o4FD'] === true;
-    const hiddenPlatforms  = (campFieldsData.records?.[0]?.fields?.['fldaDRav0VmwBxI8A'] || []).map(s => s.toLowerCase());
+    const campF            = campFieldsData.records?.[0]?.fields || {};
+    const hideProgress     = campF['fldQkRs7pObXothE4'] === true;
+    const showBios         = campF['fldwKJ9vMBTM9o4FD'] === true;
+    const hiddenPlatforms  = (campF['fldaDRav0VmwBxI8A'] || []).map(s => s.toLowerCase());
+    // Tab visibility — true (checked) = show, null/absent (unchecked) = hide
+    const tabVisibility = {
+      overview:  campF['fld8xQL6sNqYouiIZ'] === true,
+      creative:  campF['fldVIAMIGjJ8dipTk'] === true,
+      talent:    campF['fldNHYtjmSaF3Ul2y'] === true,
+      timeline:  campF['fldEBlECkHIhijJdA'] === true,
+      calendar:  campF['fld2h3oWw4f2rR4lD'] === true,
+      concepts:  campF['fldhBOR1RYrJatWud'] === true,
+      approvals: campF['fldX5pM8us7oPCIQz'] === true,
+      reporting: campF['fldAL0r2eqBPUq1Oi'] === true,
+    };
 
     // 2b. Collect unique Talent IDs from offers and fetch follower counts
     const talentIds = [...new Set(
@@ -263,6 +287,7 @@ module.exports = async function handler(req, res) {
       hideProgress:     hideProgress,
       showBios:         showBios,
       hiddenPlatforms:  hiddenPlatforms,
+      tabs:             tabVisibility,
       briefBackground: cf['Brief Background']?.trim()          || null,
       briefGuidelines: cf['Brief Creative Guidelines']?.trim() || null,
       briefCTA:        cf['Brief CTA']?.trim()                 || null,
