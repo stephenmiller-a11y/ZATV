@@ -138,6 +138,35 @@ async function atGetByIds(tableId, ids, fieldIds, token) {
   return { records: allRecords };
 }
 
+// Like atGetByIds but returns fields keyed by NAME (no returnFieldsByFieldId).
+// Used for tables where we don't have field IDs.
+async function atGetByIdsNamed(tableId, ids, token) {
+  if (!ids || ids.length === 0) return { records: [] };
+  const formula = ids.length === 1
+    ? `RECORD_ID()='${ids[0]}'`
+    : `OR(${ids.map(id => `RECORD_ID()='${id}'`).join(',')})`;
+
+  const allRecords = [];
+  let offset;
+  do {
+    const url = new URL(`${AT_BASE}/${tableId}`);
+    url.searchParams.set('filterByFormula', formula);
+    if (offset) url.searchParams.set('offset', offset);
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Airtable [${res.status}] ${tableId}: ${body}`);
+    }
+    const data = await res.json();
+    allRecords.push(...(data.records || []));
+    offset = data.offset;
+  } while (offset);
+
+  return { records: allRecords };
+}
+
 // Get first value from a multipleLookupValues array
 function firstLookup(val) {
   if (!val) return null;
@@ -194,7 +223,7 @@ module.exports = async function handler(req, res) {
     const [delivsData, offersData, timelinesData, brandData, campFieldsData] = await Promise.all([
       atGetByIds(TABLES.deliverables, deliverableIds, DELIVERABLE_FIELDS, token),
       atGetByIds(TABLES.offers,       offerIds,       OFFER_FIELDS,       token),
-      atGetByIds(TABLES.timelines,    timelineIds,    [],                 token),
+      atGetByIdsNamed(TABLES.timelines, timelineIds, token),
       brandId ? atGetByIds(BRAND_TABLE, [brandId], ['fldzffs5mAHRcIadt'], token) : Promise.resolve({ records: [] }),
       atGetByIds(TABLES.campaigns, [campaignId], ['fldQkRs7pObXothE4', 'fldwKJ9vMBTM9o4FD', 'fldaDRav0VmwBxI8A'], token),
     ]);
