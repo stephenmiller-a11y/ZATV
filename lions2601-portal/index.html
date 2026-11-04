@@ -2338,6 +2338,7 @@ function editOfferFeedback(offerId) {
 }
 
 function deleteOfferFeedback(offerId) {
+  if (!confirm('Delete this feedback? This cannot be undone.')) return;
   var safeid  = offerId.replace(/[^a-z0-9]/gi, '');
   var noteEl  = document.getElementById('onote-' + safeid);
   if (noteEl) noteEl.remove();
