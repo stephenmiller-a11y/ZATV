@@ -2454,7 +2454,7 @@ function renderTimeline(campaign, timelines) {
         <div class="tl-content">
           ${tl.date ? `<div class="tl-date">${fmtDate(tl.date)}</div>` : ''}
           <div class="tl-title">${tl.task}</div>
-          ${tl.phase ? `<div class="tl-phase">${tl.phase}</div>` : ''}
+          ${tl.phase ? `<div class="tl-phase" style="color:${ct.text}">${tl.phase}</div>` : ''}
           ${tl.status ? `<span class="tl-status-pill" style="background:${ct.bg};color:${ct.text};border:1px solid ${ct.border}">${tl.status}</span>` : ''}
         </div>
       </div>`;
