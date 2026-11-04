@@ -387,9 +387,53 @@ module.exports = async function handler(req, res) {
       }))
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
+    // 7. Fetch Phase field choices with Airtable color names → CSS map
+    // Airtable color name → { bg, text, border }
+    const AT_COLOR_CSS = {
+      blueBright:    { bg: '#cfdfff', text: '#2d396b', border: '#9fb0e5' },
+      cyanBright:    { bg: '#d0f0fd', text: '#0d6673', border: '#77d1f3' },
+      tealBright:    { bg: '#c2f5e9', text: '#087f73', border: '#8de6d4' },
+      greenBright:   { bg: '#d1f7c4', text: '#165c26', border: '#93d47d' },
+      yellowBright:  { bg: '#ffeab6', text: '#7a4a00', border: '#f5c932' },
+      orangeBright:  { bg: '#ffd3b6', text: '#7a2d00', border: '#f5a623' },
+      redBright:     { bg: '#ffdce5', text: '#7a0033', border: '#f5a9b8' },
+      pinkBright:    { bg: '#ffdaf6', text: '#94236f', border: '#f7a9e4' },
+      purpleBright:  { bg: '#ede2fe', text: '#5c3597', border: '#c9a9f9' },
+      grayBright:    { bg: '#eee', text: '#444', border: '#ccc' },
+      blueDark1:     { bg: '#1283da', text: '#fff', border: '#0d6eb5' },
+      cyanDark1:     { bg: '#067f8f', text: '#fff', border: '#056b78' },
+      tealDark1:     { bg: '#02786f', text: '#fff', border: '#01635c' },
+      greenDark1:    { bg: '#338a17', text: '#fff', border: '#2a7013' },
+      yellowDark1:   { bg: '#c8891e', text: '#fff', border: '#a86f18' },
+      orangeDark1:   { bg: '#c8631e', text: '#fff', border: '#a84f17' },
+      redDark1:      { bg: '#ba2525', text: '#fff', border: '#9b1f1f' },
+      pinkDark1:     { bg: '#9e3677', text: '#fff', border: '#852c64' },
+      purpleDark1:   { bg: '#7246be', text: '#fff', border: '#5e389e' },
+      grayDark1:     { bg: '#5b6b7c', text: '#fff', border: '#4a5868' },
+    };
+
+    let phaseColors = {};
+    try {
+      const metaUrl = `https://api.airtable.com/v0/meta/bases/${BASE_ID}/tables`;
+      const metaRes = await fetch(metaUrl, { headers: { Authorization: `Bearer ${token}` } });
+      if (metaRes.ok) {
+        const metaData = await metaRes.json();
+        const tlTable = (metaData.tables || []).find(t => t.id === TABLES.timelines);
+        if (tlTable) {
+          const phaseField = (tlTable.fields || []).find(f => f.name === 'Phase');
+          if (phaseField && phaseField.options && phaseField.options.choices) {
+            phaseField.options.choices.forEach(choice => {
+              const css = AT_COLOR_CSS[choice.color] || { bg: '#f0f0f0', text: '#444', border: '#ccc' };
+              phaseColors[choice.name] = css;
+            });
+          }
+        }
+      }
+    } catch (_) { /* non-fatal — phases render without color if this fails */ }
+
     // 60-second CDN cache, 5-minute stale-while-revalidate
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
-    return res.status(200).json({ campaign, deliverables, offers, timelines });
+    return res.status(200).json({ campaign, deliverables, offers, timelines, phaseColors });
 
   } catch (err) {
     console.error('[api/campaign]', err.message);
