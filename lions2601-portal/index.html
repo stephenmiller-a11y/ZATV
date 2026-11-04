@@ -982,7 +982,7 @@
 <div class="tab-bar">
   <div class="tab-bar-inner">
     <div class="tab active" onclick="switchTab('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>Overview</div>
-    <div class="tab" onclick="switchTab('creative',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20l9-9-3.5-3.5L8.5 16.5 7 20l3.5-1.5z"/><path d="M15 6l3 3"/></svg>Creative</div>
+    <div class="tab" onclick="switchTab('creative',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20l9-9-3.5-3.5L8.5 16.5 7 20l3.5-1.5z"/><path d="M15 6l3 3"/></svg>Brief</div>
     <div class="tab" onclick="switchTab('talent',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.8 6.6 19.6l1.1-6L3.2 9.4l6.1-.8L12 3z"/></svg>Talent</div>
     <div class="tab" onclick="switchTab('timeline',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Timeline</div>
     <div class="tab" onclick="switchTab('calendar',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</div>
@@ -1051,21 +1051,6 @@
         <div class="sum-label"><span class="sum-dot" style="background:#34c759;"></span>Approved</div>
         <div class="sum-value" id="tsum-approved" style="color:#1a7a3a;">0</div>
       </div>
-      <div class="sum-cell">
-        <div class="sum-label"><span class="sum-dot" style="background:#7b2d8b;"></span>Confirmed</div>
-        <div class="sum-value" id="tsum-confirmed" style="color:#7b2d8b;">0 <span style="font-size:13px;color:#b5b5b8;">/ 0</span></div>
-      </div>
-    </div>
-
-    <!-- Confirmed roster shelf -->
-    <div class="talent-section-head" id="talent-roster-head">
-      <div class="section-title-sm">Confirmed</div>
-      <div class="slots-label-sm" id="talent-slots-label"></div>
-    </div>
-    <div class="shelf-wrap" id="talent-shelf-wrap">
-      <div class="shelf-arrow prev" onclick="document.getElementById('talent-shelf').scrollBy({left:-400,behavior:'smooth'})">‹</div>
-      <div class="shelf-arrow next" onclick="document.getElementById('talent-shelf').scrollBy({left:400,behavior:'smooth'})">›</div>
-      <div class="shelf" id="talent-shelf"></div>
     </div>
 
     <!-- Approvals section -->
