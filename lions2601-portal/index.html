@@ -1151,7 +1151,6 @@
         </div>
         <div class="cal-grid" id="cal-grid"></div>
       </div>
-      <div class="cal-coming-up-wrap" id="cal-coming-up"></div>
     </div>
   </div>
 </div>
@@ -3284,7 +3283,7 @@ function buildCalChipHtml(ev, ct) {
     ' data-type="' + (ev.type || '').replace(/"/g,'&quot;') + '"' +
     ' data-date="' + ev.date + '"' +
     ' data-event-type="' + ev.eventType + '"' +
-    (ev.isTl ? '' : ' onmouseenter="calChipEnter(event,this)" onmouseleave="calChipLeave()"') + '>' +
+    ' onmouseenter="calChipEnter(event,this)" onmouseleave="calChipLeave()">' +
     icon +
     '<span class="cal-chip-name">' + label + '</span>' +
     '</div>';
@@ -3344,8 +3343,7 @@ function renderCalendarView() {
   var today    = new Date().toISOString().slice(0,10);
   var label    = document.getElementById('cal-month-label');
   var grid     = document.getElementById('cal-grid');
-  var comingUp = document.getElementById('cal-coming-up');
-  if (!label || !grid || !comingUp) return;
+  if (!label || !grid) return;
 
   var numDays = _calView === '2week' ? 14 : 7;
   var endDate = new Date(_calWeekStart); endDate.setDate(endDate.getDate() + numDays - 1);
@@ -3375,31 +3373,13 @@ function renderCalendarView() {
       chips + more + '</div>';
   }
   grid.innerHTML = '<div class="cal-week-row week-view-row">' + cells + '</div>';
-
-  // Coming up (same as month view)
-  var upcoming = _calEvents.filter(function(ev) { return ev.date >= today; });
-  upcoming.sort(function(a,b) { return a.date !== b.date ? String(a.date).localeCompare(String(b.date)) : typeOrder.indexOf(a.eventType) - typeOrder.indexOf(b.eventType); });
-  upcoming = upcoming.slice(0, 20);
-  if (!upcoming.length) { comingUp.style.display = 'none'; return; }
-  comingUp.style.display = '';
-  comingUp.innerHTML = '<div class="cal-coming-up-title">Coming Up</div><div class="cal-upcoming-list">' +
-    upcoming.map(function(ev) {
-      var parts = ev.date.split('-'), mo2 = parseInt(parts[1],10)-1, day = parseInt(parts[2],10);
-      var ct    = CAL_TYPES[ev.eventType] || CAL_TYPES.tlpending;
-      var title = ev.isTl ? (ev.task || '') : ct.label + ' · ' + (ev.code || ev.talent);
-      var sub   = ev.isTl ? (ev.phase || ev.status || '') : ev.talent + ' · ' + calPlatformLabel(ev.type);
-      return '<div class="cal-upcoming-item"><div class="cal-date-badge"><span class="cal-date-badge-month">' + CAL_MONTHS_SHORT[mo2] + '</span><span class="cal-date-badge-day">' + day + '</span></div>' +
-        '<div class="cal-upcoming-info"><div class="cal-upcoming-title">' + title + '</div><div class="cal-upcoming-sub">' + sub + '</div></div>' +
-        '<span class="cal-upcoming-pill" style="background:' + ct.bg + ';color:' + ct.text + ';border:1px solid ' + ct.border + '">' + ct.label + '</span></div>';
-    }).join('') + '</div>';
 }
 
 function renderCalendarMonth() {
   var today     = new Date().toISOString().slice(0,10);
   var label     = document.getElementById('cal-month-label');
   var grid      = document.getElementById('cal-grid');
-  var comingUp  = document.getElementById('cal-coming-up');
-  if (!label || !grid || !comingUp) return;
+  if (!label || !grid) return;
 
   label.textContent = CAL_MONTHS_LONG[_calMonth] + ' ' + _calYear;
 
@@ -3455,42 +3435,6 @@ function renderCalendarMonth() {
     weekRows += '<div class="cal-week-row" data-row="' + Math.floor(ri / 7) + '">' + allCells.slice(ri, ri + 7).join('') + '</div>';
   }
   grid.innerHTML = weekRows;
-
-  // Coming Up list — upcoming events from today, sorted, capped at 20
-  var upcoming = _calEvents.filter(function(e) { return e.date >= today; });
-  upcoming.sort(function(a,b) {
-    if (a.date !== b.date) return String(a.date).localeCompare(String(b.date));
-    return typeOrder.indexOf(a.eventType) - typeOrder.indexOf(b.eventType);
-  });
-  upcoming = upcoming.slice(0, 20);
-
-  if (upcoming.length === 0) {
-    comingUp.style.display = 'none';
-    return;
-  }
-  comingUp.style.display = '';
-
-  var items = upcoming.map(function(e) {
-    var parts = e.date.split('-');
-    var mo    = parseInt(parts[1], 10) - 1;
-    var day   = parseInt(parts[2], 10);
-    var ct    = CAL_TYPES[e.eventType] || CAL_TYPES.tlpending;
-    var title = e.isTl ? (e.task || '') : ct.label + ' · ' + (e.code || e.talent);
-    var sub   = e.isTl ? (e.phase || e.status || '') : e.talent + ' · ' + calPlatformLabel(e.type);
-    return '<div class="cal-upcoming-item">' +
-      '<div class="cal-date-badge">' +
-        '<span class="cal-date-badge-month">' + CAL_MONTHS_SHORT[mo] + '</span>' +
-        '<span class="cal-date-badge-day">' + day + '</span>' +
-      '</div>' +
-      '<div class="cal-upcoming-info">' +
-        '<div class="cal-upcoming-title">' + title + '</div>' +
-        '<div class="cal-upcoming-sub">' + sub + '</div>' +
-      '</div>' +
-      '<span class="cal-upcoming-pill" style="background:' + ct.bg + ';color:' + ct.text + ';border:1px solid ' + ct.border + '">' + ct.label + '</span>' +
-    '</div>';
-  }).join('');
-
-  comingUp.innerHTML = '<div class="cal-coming-up-title">Coming Up</div><div class="cal-upcoming-list">' + items + '</div>';
 }
 
 // ── CALENDAR CHIP TOOLTIP ──────────────────────────────────────────────────────
@@ -3504,65 +3448,74 @@ function calChipEnter(evt, chip) {
   var type      = chip.dataset.type;
   var date      = chip.dataset.date;
   var eventType = chip.dataset.eventType;
-  var ct        = CAL_TYPES[eventType] || CAL_TYPES.post;
-
-  // Look up full deliverable record
-  var del = null;
-  for (var i = 0; i < _deliverables.length; i++) {
-    if (_deliverables[i].code === code && _deliverables[i].talent === talent) { del = _deliverables[i]; break; }
-  }
-  if (!del) {
-    for (var j = 0; j < _deliverables.length; j++) {
-      if (_deliverables[j].talent === talent && _deliverables[j].type === type) { del = _deliverables[j]; break; }
-    }
-  }
-
-  // Avatar
-  var headshotUrl = _headshotMap[talent] || null;
-  var avatarHtml = headshotUrl
-    ? '<div class="cal-tt-avatar"><img src="' + headshotUrl + '" alt="" onerror="this.parentNode.textContent=\'' + initials(talent) + '\'"></div>'
-    : '<div class="cal-tt-avatar">' + initials(talent) + '</div>';
-
-  // Event pill + date
-  var eventRow = '<div class="cal-tt-event-row">' +
-    '<span class="cal-tt-event-pill" style="background:' + ct.bg + ';color:' + ct.text + ';border:1px solid ' + ct.border + '">' + ct.label + '</span>' +
-    '<span class="cal-tt-date">' + fmtDate(date) + '</span>' +
-    '</div>';
-
-  // Deliverable code line
-  var codeHtml = '';
-  var viewPostHtml = (eventType === 'post' && del && del.postLink)
-    ? '<a href="' + del.postLink + '" target="_blank" class="cal-tt-view-btn">View Post ↗</a>'
-    : '';
-
-  // Stats (only for post event type and when data exists)
-  var statsHtml = '';
-  if (eventType === 'post' && del) {
-    var hasStats = del.views != null || del.likes != null || del.comments != null || del.shares != null;
-    if (hasStats) {
-      var metrics = [
-        { icon: '👁', label: 'Views',    val: del.views    },
-        { icon: '❤️', label: 'Likes',    val: del.likes    },
-        { icon: '💬', label: 'Comments', val: del.comments },
-        { icon: '🔁', label: 'Shares',   val: del.shares   },
-      ];
-      statsHtml = '<div class="cal-tt-stats">' + metrics.map(function(m) {
-        return '<div class="cal-tt-stat">' +
-          '<div class="cal-tt-stat-val">' + fmtNum(m.val) + '</div>' +
-          '<div class="cal-tt-stat-lbl">' + m.icon + ' ' + m.label + '</div>' +
-          '</div>';
-      }).join('') + '</div>';
-    }
-  }
+  var ct        = CAL_TYPES[eventType] || CAL_TYPES.tlpending;
+  var isTl      = eventType && eventType.startsWith('tl');
 
   var tt = document.getElementById('cal-tooltip');
-  tt.innerHTML =
-    '<div class="cal-tt-head">' + avatarHtml +
-      '<div><div class="cal-tt-name">' + talent + '</div>' +
-        '<div class="cal-tt-sub">' + calPlatformSvg(type) + ' ' + type + '</div>' +
+
+  if (isTl) {
+    // Timeline event: use Coming Up item design
+    var parts = (date || '').split('-');
+    var mo    = parts[1] ? parseInt(parts[1], 10) - 1 : 0;
+    var day   = parts[2] ? parseInt(parts[2], 10) : '';
+    var sub   = type || ''; // phase stored in data-type
+    tt.innerHTML =
+      '<div class="cal-upcoming-item" style="padding:0;border:none">' +
+        '<div class="cal-date-badge">' +
+          '<span class="cal-date-badge-month">' + (CAL_MONTHS_SHORT[mo] || '') + '</span>' +
+          '<span class="cal-date-badge-day">' + day + '</span>' +
+        '</div>' +
+        '<div class="cal-upcoming-info">' +
+          '<div class="cal-upcoming-title">' + (code || talent || '') + '</div>' +
+          (sub ? '<div class="cal-upcoming-sub">' + sub + '</div>' : '') +
+        '</div>' +
+        '<span class="cal-upcoming-pill" style="background:' + ct.bg + ';color:' + ct.text + ';border:1px solid ' + ct.border + '">' + ct.label + '</span>' +
+      '</div>';
+  } else {
+    // Deliverable event: original tooltip design
+    var del = null;
+    for (var i = 0; i < _deliverables.length; i++) {
+      if (_deliverables[i].code === code && _deliverables[i].talent === talent) { del = _deliverables[i]; break; }
+    }
+    if (!del) {
+      for (var j = 0; j < _deliverables.length; j++) {
+        if (_deliverables[j].talent === talent && _deliverables[j].type === type) { del = _deliverables[j]; break; }
+      }
+    }
+    var headshotUrl = _headshotMap[talent] || null;
+    var avatarHtml  = headshotUrl
+      ? '<div class="cal-tt-avatar"><img src="' + headshotUrl + '" alt="" onerror="this.parentNode.textContent=\'' + initials(talent) + '\'"></div>'
+      : '<div class="cal-tt-avatar">' + initials(talent) + '</div>';
+    var eventRow = '<div class="cal-tt-event-row">' +
+      '<span class="cal-tt-event-pill" style="background:' + ct.bg + ';color:' + ct.text + ';border:1px solid ' + ct.border + '">' + ct.label + '</span>' +
+      '<span class="cal-tt-date">' + fmtDate(date) + '</span>' +
+      '</div>';
+    var viewPostHtml = (eventType === 'post' && del && del.postLink)
+      ? '<a href="' + del.postLink + '" target="_blank" class="cal-tt-view-btn">View Post ↗</a>'
+      : '';
+    var statsHtml = '';
+    if (eventType === 'post' && del) {
+      var hasStats = del.views != null || del.likes != null || del.comments != null || del.shares != null;
+      if (hasStats) {
+        var metrics = [
+          { icon: '👁', label: 'Views',    val: del.views    },
+          { icon: '❤️', label: 'Likes',    val: del.likes    },
+          { icon: '💬', label: 'Comments', val: del.comments },
+          { icon: '🔁', label: 'Shares',   val: del.shares   },
+        ];
+        statsHtml = '<div class="cal-tt-stats">' + metrics.map(function(m) {
+          return '<div class="cal-tt-stat"><div class="cal-tt-stat-val">' + fmtNum(m.val) + '</div><div class="cal-tt-stat-lbl">' + m.icon + ' ' + m.label + '</div></div>';
+        }).join('') + '</div>';
+      }
+    }
+    tt.innerHTML =
+      '<div class="cal-tt-head">' + avatarHtml +
+        '<div><div class="cal-tt-name">' + talent + '</div>' +
+          '<div class="cal-tt-sub">' + calPlatformSvg(type) + ' ' + type + '</div>' +
+        '</div>' +
       '</div>' +
-    '</div>' +
-    eventRow + codeHtml + statsHtml + viewPostHtml;
+      eventRow + statsHtml + viewPostHtml;
+  }
 
   // Position tooltip near the cursor (not the chip edge) so the mouse barely has to move.
   var ttW = 270, ttH = tt.offsetHeight || 180;
