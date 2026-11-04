@@ -1300,7 +1300,8 @@ if (_reportingOnly) document.body.classList.add('reporting-only');
 
 // ── RENDER ALL ────────────────────────────────────────────────────────────────
 function renderAll(data) {
-  const { campaign, deliverables, offers, timelines } = data;
+  const { campaign, deliverables, offers, timelines, phaseColors } = data;
+  _phaseColors = phaseColors || {};
   _deliverables = deliverables; // cache for updateStats()
   _offers       = offers;       // cache for roster updates
   _showBios         = !!(campaign && campaign.showBios);
@@ -2448,13 +2449,16 @@ function renderTimeline(campaign, timelines) {
       const dotClass = isDone ? 'tl-dot-done' : isActive ? 'tl-dot-active' : 'tl-dot-upcoming';
       const evType = tlStatusToEventType(tl.status);
       const ct = CAL_TYPES[evType] || CAL_TYPES.tlpending;
+      const pc = (tl.phase && _phaseColors[tl.phase]) || null;
       return `<div class="tl-item ${isLast ? 'tl-item-last' : ''}">
         <div class="tl-dot ${dotClass}"></div>
         <div class="tl-connector"></div>
         <div class="tl-content">
           ${tl.date ? `<div class="tl-date">${fmtDate(tl.date)}</div>` : ''}
           <div class="tl-title">${tl.task}</div>
-          ${tl.phase ? `<div class="tl-phase" style="color:${ct.text}">${tl.phase}</div>` : ''}
+          ${tl.phase ? (pc
+            ? `<span class="tl-status-pill" style="background:${pc.bg};color:${pc.text};border:1px solid ${pc.border}">${tl.phase}</span>`
+            : `<div class="tl-phase">${tl.phase}</div>`) : ''}
           ${tl.status ? `<span class="tl-status-pill" style="background:${ct.bg};color:${ct.text};border:1px solid ${ct.border}">${tl.status}</span>` : ''}
         </div>
       </div>`;
@@ -3132,6 +3136,7 @@ function renderApprovals(offers, deliverables) {
 
 var _tlTimelines  = []; // cached timeline records for calendar
 var _tlView       = 'list'; // 'list' | 'calendar'
+var _phaseColors  = {}; // phase name → {bg, text, border} from API
 var _calYear      = new Date().getFullYear();
 var _calMonth     = new Date().getMonth(); // 0-based
 var _calEvents    = []; // all calendar events built from timelines
