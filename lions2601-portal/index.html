@@ -495,6 +495,8 @@
     .offer-actions { padding: 12px 22px 16px; border-top: 1px solid #f4f4f4; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .btn-approve { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; border: none; cursor: pointer; background: #1a7a3a; color: #fff; }
     .btn-approve:hover { background: #156630; }
+    .btn-mark-pending { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; border: 1.5px solid #d1a200; cursor: pointer; background: #fffbea; color: #7a5500; font-family: inherit; }
+    .btn-mark-pending:hover { background: #fff3c4; }
     .btn-pass { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #fff; color: #b03030; border: 1.5px solid #eec4c4; }
     .btn-pass:hover { background: #fdf1f1; }
     .btn-offer-feedback { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #fff; color: #6b2d8b; border: 1.5px solid #e0ccff; }
@@ -2025,6 +2027,10 @@ function buildOfferCard(offer, section, confirmed) {
         '<button class="btn-send-offer-feedback" onclick="sendOfferFeedback(\'' + offer.id + '\')">Send</button>' +
       '</div>' +
     '</div>';
+  } else if (approved) {
+    actionsHtml = '<div class="offer-actions" id="oact-' + safeid + '">' +
+      '<button class="btn-mark-pending" onclick="markTalentPending(\'' + offer.id + '\')">⏳ Mark as Pending</button>' +
+    '</div>';
   }
 
   return '<div class="' + cardCls + '" data-offer-id="' + offer.id + '" data-tstate="' + tstate + '" data-rank="' + (offer.brandRanking||99) + '" data-talent-status="' + (offer.status||'').toLowerCase() + '">' +
@@ -2121,9 +2127,21 @@ function confirmTalentRank() {
     nameEl.appendChild(rankSel);
   }
 
-  // Remove action buttons
+  // Replace action buttons with "Mark as Pending"
   var actEl = document.getElementById('oact-' + safeid);
-  if (actEl) actEl.remove();
+  if (actEl) {
+    actEl.innerHTML = '<button class="btn-mark-pending" onclick="markTalentPending(\'' + offerId + '\')">⏳ Mark as Pending</button>';
+  } else {
+    // actEl may have already been removed (e.g. re-approval); inject into card body
+    var bodyEl = card.querySelector('.offer-body');
+    if (bodyEl) {
+      var newAct = document.createElement('div');
+      newAct.className = 'offer-actions';
+      newAct.id = 'oact-' + safeid;
+      newAct.innerHTML = '<button class="btn-mark-pending" onclick="markTalentPending(\'' + offerId + '\')">⏳ Mark as Pending</button>';
+      bodyEl.appendChild(newAct);
+    }
+  }
 
   // Sort again now that this card's tstate + rank are set correctly
   sortTalentCardsDom();
@@ -2162,6 +2180,62 @@ function passTalentOffer(offerId) {
 
   refreshTalentCounts();
   setTimeout(function(){ setTalentState(_talentState, document.querySelector('.state-tab[data-tstate="' + _talentState + '"]')); }, 400);
+}
+
+function markTalentPending(offerId) {
+  var safeid = offerId.replace(/[^a-z0-9]/gi, '');
+  var card = document.querySelector('#talent-cards [data-offer-id="' + offerId + '"]');
+  if (!card) return;
+
+  // Update cache
+  var cached = _offers.find(function(o){ return o.id === offerId; });
+  if (cached) {
+    cached.brandApproval = null;
+    cached.brandRanking  = null;
+  }
+
+  // Update card state
+  card.dataset.tstate = 'pending';
+  card.dataset.rank   = 99;
+  card.classList.remove('approved');
+
+  // Restore pill
+  var pillEl = card.querySelector('.offer-pill');
+  if (pillEl) pillEl.outerHTML = '<span class="offer-pill pill-pending" id="opill-' + safeid + '">⏳ Pending</span>';
+
+  // Remove rank select
+  var rankSel = card.querySelector('.offer-rank-select');
+  if (rankSel) rankSel.remove();
+
+  // Replace actions with the standard Approve / Pass / Feedback buttons
+  var actEl = document.getElementById('oact-' + safeid);
+  var actHtml = '<div class="offer-actions" id="oact-' + safeid + '">' +
+    '<button class="btn-approve" onclick="openTalentRankModal(\'' + offerId + '\')">✓ Approve</button>' +
+    '<button class="btn-pass" onclick="passTalentOffer(\'' + offerId + '\')">✗ Pass</button>' +
+    '<button class="btn-offer-feedback" onclick="toggleOfferFeedback(\'' + offerId + '\')">💬 Feedback</button>' +
+    '<div class="offer-feedback-wrap">' +
+      '<textarea class="offer-feedback-input" id="ofb-' + safeid + '" placeholder="Add your feedback..."></textarea>' +
+      '<button class="btn-send-offer-feedback" onclick="sendOfferFeedback(\'' + offerId + '\')">Send</button>' +
+    '</div>' +
+  '</div>';
+  if (actEl) {
+    actEl.outerHTML = actHtml;
+  } else {
+    var bodyEl = card.querySelector('.offer-body');
+    if (bodyEl) bodyEl.insertAdjacentHTML('beforeend', actHtml);
+  }
+
+  // Sort + counts
+  sortTalentCardsDom();
+  rebuildRankDropdowns();
+  refreshTalentCounts();
+  setTimeout(function(){ setTalentState(_talentState, document.querySelector('.state-tab[data-tstate="' + _talentState + '"]')); }, 50);
+
+  // Save to Airtable — clear approval and ranking
+  fetch('/api/offer', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offerId: offerId, approval: 'Pending', ranking: null }),
+  }).catch(function(e){ console.error('[markTalentPending]', e); });
 }
 
 function toggleOfferFeedback(offerId) {
