@@ -501,13 +501,24 @@
     .btn-pass:hover { background: #fdf1f1; }
     .btn-offer-feedback { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #fff; color: #6b2d8b; border: 1.5px solid #e0ccff; }
     .btn-offer-feedback:hover { background: #f5eeff; }
-    .offer-feedback-wrap { display: none; width: 100%; margin-top: 4px; }
-    .offer-card.offer-fb-open .offer-feedback-wrap { display: flex; gap: 8px; }
-    .offer-feedback-input { flex: 1; min-height: 38px; border: 1.5px solid #e0e0e0; border-radius: 9px; padding: 9px 12px; font-size: 13px; font-family: inherit; color: #333; outline: none; resize: vertical; }
+    .offer-feedback-input { min-height: 38px; border: 1.5px solid #e0e0e0; border-radius: 9px; padding: 9px 12px; font-size: 13px; font-family: inherit; color: #333; outline: none; resize: vertical; }
     .offer-feedback-input:focus { border-color: #7b2d8b; }
-    .btn-send-offer-feedback { align-self: flex-start; padding: 9px 16px; border-radius: 8px; border: none; background: #7b2d8b; color: #fff; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+    .btn-send-offer-feedback { align-self: flex-start; padding: 9px 16px; border-radius: 8px; border: none; background: #7b2d8b; color: #fff; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
     .offer-note { margin-top: 10px; background: #fffbea; border: 1px solid #f3e5b3; border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: #7a5b10; line-height: 1.55; }
-    .offer-note b { font-weight: 700; }
+    .offer-note-author { font-size: 11px; font-weight: 700; color: #a07000; margin-bottom: 3px; }
+    .offer-note-text { color: #7a5b10; }
+    .offer-note-actions { display: flex; gap: 8px; margin-top: 7px; }
+    .btn-note-edit, .btn-note-delete { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; border: 1.5px solid; cursor: pointer; font-family: inherit; background: transparent; }
+    .btn-note-edit { color: #6b2d8b; border-color: #d9b8ff; }
+    .btn-note-edit:hover { background: #f5eeff; }
+    .btn-note-delete { color: #c0392b; border-color: #f5b8b8; }
+    .btn-note-delete:hover { background: #fff0f0; }
+    .offer-feedback-wrap { display: none; width: 100%; margin-top: 4px; }
+    .offer-card.offer-fb-open .offer-feedback-wrap { display: flex; gap: 8px; align-items: flex-start; }
+    .offer-feedback-fields { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .offer-feedback-name { border: 1.5px solid #e0e0e0; border-radius: 9px; padding: 7px 12px; font-size: 12.5px; font-family: inherit; color: #333; outline: none; }
+    .offer-feedback-name:focus { border-color: #7b2d8b; }
+    .offer-feedback-name::placeholder { color: #bbb; font-style: italic; }
     .talent-notes-box { margin-top: 10px; background: #f9f9fb; border: 1px solid #ebebef; border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: #444; line-height: 1.55; }
     .talent-notes-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #999; margin-bottom: 4px; }
     .offer-rank-select { appearance: none; -webkit-appearance: none; font-family: inherit; cursor: pointer; margin-left: 10px; padding: 3px 24px 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; background-color: #f5eeff; color: #6b2d8b; border: 1.5px solid #e0ccff; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b2d8b'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
@@ -1267,6 +1278,7 @@ var _offers        = []; // cached for roster updates after approval actions
 var _showBios          = false; // campaign.showBios flag
 var _hiddenPlatforms   = [];   // campaign.hiddenPlatforms (lowercase array)
 var _tabs              = null; // campaign.tabs visibility map (null = all visible)
+var _feedbackAuthor    = '';   // persisted name for feedback form across the session
 var _headshotMap   = {}; // talent name → headshotUrl, built from offers
 var _campaignId    = new URLSearchParams(window.location.search).get('campaign') || '';
 var _reportingOnly = new URLSearchParams(window.location.search).get('view') === 'reporting'
@@ -2006,9 +2018,7 @@ function buildOfferCard(offer, section, confirmed) {
     : '';
 
   // Feedback note (pre-loaded from Airtable)
-  var feedbackNote = offer.brandFeedback
-    ? '<div class="offer-note"><b>Feedback:</b> ' + offer.brandFeedback + '</div>'
-    : '';
+  var feedbackNote = buildFeedbackNoteHtml(offer.id, offer.brandFeedback || '');
 
   // Talent notes
   var talentNotesHtml = offer.talentNotes
@@ -2022,10 +2032,7 @@ function buildOfferCard(offer, section, confirmed) {
       '<button class="btn-approve" onclick="openTalentRankModal(\'' + offer.id + '\')">✓ Approve</button>' +
       '<button class="btn-pass" onclick="passTalentOffer(\'' + offer.id + '\')">✗ Pass</button>' +
       '<button class="btn-offer-feedback" onclick="toggleOfferFeedback(\'' + offer.id + '\')">💬 Feedback</button>' +
-      '<div class="offer-feedback-wrap">' +
-        '<textarea class="offer-feedback-input" id="ofb-' + safeid + '" placeholder="Add your feedback..."></textarea>' +
-        '<button class="btn-send-offer-feedback" onclick="sendOfferFeedback(\'' + offer.id + '\')">Send</button>' +
-      '</div>' +
+      buildFeedbackFormHtml(offer.id) +
     '</div>';
   } else if (approved) {
     actionsHtml = '<div class="offer-actions" id="oact-' + safeid + '">' +
@@ -2213,10 +2220,7 @@ function markTalentPending(offerId) {
     '<button class="btn-approve" onclick="openTalentRankModal(\'' + offerId + '\')">✓ Approve</button>' +
     '<button class="btn-pass" onclick="passTalentOffer(\'' + offerId + '\')">✗ Pass</button>' +
     '<button class="btn-offer-feedback" onclick="toggleOfferFeedback(\'' + offerId + '\')">💬 Feedback</button>' +
-    '<div class="offer-feedback-wrap">' +
-      '<textarea class="offer-feedback-input" id="ofb-' + safeid + '" placeholder="Add your feedback..."></textarea>' +
-      '<button class="btn-send-offer-feedback" onclick="sendOfferFeedback(\'' + offerId + '\')">Send</button>' +
-    '</div>' +
+    buildFeedbackFormHtml(offerId) +
   '</div>';
   if (actEl) {
     actEl.outerHTML = actHtml;
@@ -2238,28 +2242,115 @@ function markTalentPending(offerId) {
   }).catch(function(e){ console.error('[markTalentPending]', e); });
 }
 
+// ── Feedback helpers ──────────────────────────────────────────────────────────
+// Name and feedback are stored separated by \x1E (record separator).
+// If no name was given, only the feedback text is stored.
+
+function buildFeedbackNoteHtml(offerId, storedText) {
+  if (!storedText) return '';
+  var safeid = offerId.replace(/[^a-z0-9]/gi, '');
+  var sepIdx = storedText.indexOf('\x1E');
+  var author = sepIdx > -1 ? storedText.slice(0, sepIdx) : null;
+  var text   = sepIdx > -1 ? storedText.slice(sepIdx + 1) : storedText;
+  var inner  = (author ? '<div class="offer-note-author">👤 ' + author.replace(/</g,'&lt;') + '</div>' : '') +
+    '<div class="offer-note-text">' + text.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>' +
+    '<div class="offer-note-actions">' +
+      '<button class="btn-note-edit" onclick="editOfferFeedback(\'' + offerId + '\')">✏️ Edit</button>' +
+      '<button class="btn-note-delete" onclick="deleteOfferFeedback(\'' + offerId + '\')">🗑 Delete</button>' +
+    '</div>';
+  return '<div class="offer-note" id="onote-' + safeid + '">' + inner + '</div>';
+}
+
+function buildFeedbackFormHtml(offerId) {
+  var safeid = offerId.replace(/[^a-z0-9]/gi, '');
+  return '<div class="offer-feedback-wrap">' +
+    '<div class="offer-feedback-fields">' +
+      '<input class="offer-feedback-name" id="ofb-name-' + safeid + '" placeholder="Your name…">' +
+      '<textarea class="offer-feedback-input" id="ofb-' + safeid + '" placeholder="Add your feedback…"></textarea>' +
+    '</div>' +
+    '<button class="btn-send-offer-feedback" onclick="sendOfferFeedback(\'' + offerId + '\')">Send</button>' +
+  '</div>';
+}
+
 function toggleOfferFeedback(offerId) {
+  var safeid = offerId.replace(/[^a-z0-9]/gi, '');
   var card = document.querySelector('#talent-cards [data-offer-id="' + offerId + '"]');
-  if (card) card.classList.toggle('offer-fb-open');
+  if (!card) return;
+  card.classList.toggle('offer-fb-open');
+  if (card.classList.contains('offer-fb-open') && _feedbackAuthor) {
+    var nameInp = document.getElementById('ofb-name-' + safeid);
+    if (nameInp && !nameInp.value) nameInp.value = _feedbackAuthor;
+  }
 }
 
 function sendOfferFeedback(offerId) {
-  var safeid = offerId.replace(/[^a-z0-9]/gi, '');
-  var inp = document.getElementById('ofb-' + safeid);
+  var safeid   = offerId.replace(/[^a-z0-9]/gi, '');
+  var nameInp  = document.getElementById('ofb-name-' + safeid);
+  var inp      = document.getElementById('ofb-' + safeid);
   if (!inp) return;
-  var val = inp.value.trim();
-  if (!val) { inp.focus(); return; }
+  var feedVal  = inp.value.trim();
+  if (!feedVal) { inp.focus(); return; }
+  var nameVal  = nameInp ? nameInp.value.trim() : '';
+  if (nameVal) _feedbackAuthor = nameVal;
+  var storeVal = nameVal ? (nameVal + '\x1E' + feedVal) : feedVal;
+
   var card = document.querySelector('#talent-cards [data-offer-id="' + offerId + '"]');
   if (!card) return;
   card.classList.remove('offer-fb-open');
-  var body = card.querySelector('.offer-body');
-  if (body) body.insertAdjacentHTML('beforeend', '<div class="offer-note"><b>Feedback:</b> ' + val.replace(/</g,'&lt;') + '</div>');
+
+  // Update or insert the note
+  var noteEl  = document.getElementById('onote-' + safeid);
+  var noteHtml = buildFeedbackNoteHtml(offerId, storeVal);
+  if (noteEl) {
+    noteEl.outerHTML = noteHtml;
+  } else {
+    var body = card.querySelector('.offer-body');
+    if (body) body.insertAdjacentHTML('beforeend', noteHtml);
+  }
   inp.value = '';
+
+  // Update cache
+  var cached = _offers.find(function(o){ return o.id === offerId; });
+  if (cached) cached.brandFeedback = storeVal;
 
   fetch('/api/feedback', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ offerId: offerId, feedback: val }),
+    body: JSON.stringify({ offerId: offerId, feedback: storeVal }),
   }).catch(function(e){ console.error('[sendOfferFeedback]', e); });
+}
+
+function editOfferFeedback(offerId) {
+  var safeid  = offerId.replace(/[^a-z0-9]/gi, '');
+  var card    = document.querySelector('#talent-cards [data-offer-id="' + offerId + '"]');
+  if (!card) return;
+
+  // Get stored text from cache
+  var cached     = _offers.find(function(o){ return o.id === offerId; });
+  var storedText = (cached && cached.brandFeedback) || '';
+  var sepIdx     = storedText.indexOf('\x1E');
+  var author     = sepIdx > -1 ? storedText.slice(0, sepIdx) : (_feedbackAuthor || '');
+  var feedText   = sepIdx > -1 ? storedText.slice(sepIdx + 1) : storedText;
+
+  // Open the form and pre-fill
+  card.classList.add('offer-fb-open');
+  var nameInp = document.getElementById('ofb-name-' + safeid);
+  var fbInp   = document.getElementById('ofb-' + safeid);
+  if (nameInp) nameInp.value = author;
+  if (fbInp)   { fbInp.value = feedText; fbInp.focus(); }
+}
+
+function deleteOfferFeedback(offerId) {
+  var safeid  = offerId.replace(/[^a-z0-9]/gi, '');
+  var noteEl  = document.getElementById('onote-' + safeid);
+  if (noteEl) noteEl.remove();
+
+  var cached = _offers.find(function(o){ return o.id === offerId; });
+  if (cached) cached.brandFeedback = null;
+
+  fetch('/api/feedback', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offerId: offerId, feedback: '' }),
+  }).catch(function(e){ console.error('[deleteOfferFeedback]', e); });
 }
 
 function changeTalentRank(sel) {
