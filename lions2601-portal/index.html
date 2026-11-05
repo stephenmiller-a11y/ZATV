@@ -737,6 +737,16 @@
 
     /* ── REPORTING TAB ───────────────────────────────────────────────────── */
     .reporting-main { max-width: 980px; margin: 0 auto; padding: 32px 32px 64px; }
+    /* Finals simplified view */
+    .finals-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .finals-item { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 12px 16px; }
+    .finals-thumb { width: 80px; height: 56px; border-radius: 8px; object-fit: cover; background: #f0f0f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 22px; overflow: hidden; }
+    .finals-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    .finals-info { flex: 1; min-width: 0; }
+    .finals-talent { font-size: 14px; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .finals-meta { font-size: 12px; color: #888; margin-top: 2px; }
+    .finals-link { flex-shrink: 0; font-size: 12px; font-weight: 700; color: #7b2d8b; text-decoration: none; padding: 6px 14px; border: 1.5px solid #d9b8f5; border-radius: 8px; white-space: nowrap; }
+    .finals-link:hover { background: #f5eeff; }
     .reporting-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
     .reporting-header-left h2 { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
     .reporting-header-left p  { font-size: 13px; color: #999; }
@@ -1005,7 +1015,7 @@
     <div class="tab" onclick="switchTab('timeline',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Timeline</div>
     <div class="tab" onclick="switchTab('concepts',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6.5 6.5 0 0 1 4 11.6c-.7.6-1 1.4-1 2.4H9c0-1-.3-1.8-1-2.4A6.5 6.5 0 0 1 12 3z"/></svg>Concepts <span class="tab-count-dot" id="tab-badge-concepts" style="display:none">0</span></div>
     <div class="tab" onclick="switchTab('approvals',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M9 13h6M9 17h4"/></svg>Drafts <span class="tab-count-dot" id="tab-badge-drafts" style="display:none">0</span></div>
-    <div class="tab" onclick="switchTab('reporting',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reporting</div>
+    <div class="tab" onclick="switchTab('reporting',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Finals</div>
   </div>
 </div>
 
@@ -1291,6 +1301,7 @@ var _offers        = []; // cached for roster updates after approval actions
 var _showBios          = false; // campaign.showBios flag
 var _hiddenPlatforms   = [];   // campaign.hiddenPlatforms (lowercase array)
 var _tabs              = null; // campaign.tabs visibility map (null = all visible)
+var _finalsMode        = false; // campaign.finalsMode — simplified Finals view
 var _feedbackAuthor    = '';   // persisted name for feedback form across the session
 var _headshotMap   = {}; // talent name → headshotUrl, built from offers
 var _campaignId    = new URLSearchParams(window.location.search).get('campaign') || '';
@@ -1307,6 +1318,7 @@ function renderAll(data) {
   _showBios         = !!(campaign && campaign.showBios);
   _hiddenPlatforms  = (campaign && campaign.hiddenPlatforms) || [];
   _tabs             = (campaign && campaign.tabs) || null;
+  _finalsMode       = !!(campaign && campaign.finalsMode);
   applyTabVisibility();
   // Build headshot lookup: talent name → headshotUrl
   _headshotMap = {};
@@ -3822,6 +3834,33 @@ function renderRptMetrics(filtered) {
 
 function renderReporting(campaign, deliverables) {
   _rptDelivs = deliverables;
+
+  // ── Finals mode: simplified deliverable list ──────────────────────────────
+  if (_finalsMode) {
+    var items = deliverables.map(function(d) {
+      var thumbHtml = d.thumbnailUrl
+        ? '<div class="finals-thumb"><img src="' + d.thumbnailUrl + '" alt=""></div>'
+        : '<div class="finals-thumb">🎬</div>';
+      var metaParts = [];
+      if (d.type)    metaParts.push(d.type);
+      if (d.airDate) metaParts.push(fmtDate(d.airDate));
+      var linkHtml = d.postLink
+        ? '<a href="' + d.postLink + '" target="_blank" class="finals-link">View Post ↗</a>'
+        : '<span class="finals-link" style="opacity:0.35;cursor:default">No Link</span>';
+      return '<div class="finals-item">'
+        + thumbHtml
+        + '<div class="finals-info">'
+          + '<div class="finals-talent">' + (d.talent || '—') + '</div>'
+          + (metaParts.length ? '<div class="finals-meta">' + metaParts.join(' · ') + '</div>' : '')
+        + '</div>'
+        + linkHtml
+        + '</div>';
+    }).join('');
+    document.getElementById('reporting-main').innerHTML =
+      '<div class="finals-list">' + items + '</div>';
+    return;
+  }
+
   var total = deliverables.length;
 
   var lastUpdated = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
