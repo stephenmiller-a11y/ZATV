@@ -237,6 +237,7 @@ module.exports = async function handler(req, res) {
         'fldhBOR1RYrJatWud',  // Concepts Tab
         'fldX5pM8us7oPCIQz',  // Drafts Tab
         'fldAL0r2eqBPUq1Oi',  // Reporting Tab
+        'fld1dY9iZdbaKMb8o',  // Finals Mode
       ], token),
     ]);
 
@@ -288,6 +289,7 @@ module.exports = async function handler(req, res) {
       showBios:         showBios,
       hiddenPlatforms:  hiddenPlatforms,
       tabs:             tabVisibility,
+      finalsMode:       campF['fld1dY9iZdbaKMb8o'] === true,
       briefBackground: cf['Brief Background']?.trim()          || null,
       briefGuidelines: cf['Brief Creative Guidelines']?.trim() || null,
       briefCTA:        cf['Brief CTA']?.trim()                 || null,
